@@ -11,6 +11,7 @@ Route::inertia('/', 'Welcome')->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
 
+    Route::get('loans', [LoanController::class, 'index'])->name('loans.index');
     Route::get('loans/{loan}', [LoanController::class, 'show'])->name('loans.show');
     Route::post('loans/{loan}/investments', [LoanInvestmentController::class, 'store'])
         ->name('loans.investments.store');

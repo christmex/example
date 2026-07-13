@@ -52,4 +52,9 @@ class Loan extends Model
     {
         return $this->hasMany(LoanInvestment::class);
     }
+
+    public function isFullyFunded(): bool
+    {
+        return $this->status === LoanStatus::FullyFunded;
+    }
 }

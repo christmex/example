@@ -77,6 +77,16 @@ test('the loan funding page renders for an investor', function () {
         ->assertOk();
 });
 
+test('the loans index page renders for an investor', function () {
+    $user = User::factory()->create();
+    Investor::factory()->for($user)->create();
+    Loan::factory()->count(3)->create();
+
+    $this->actingAs($user)
+        ->get(route('loans.index'))
+        ->assertOk();
+});
+
 test('a loan is never funded beyond the amount requested', function () {
     $loan = Loan::factory()->create(['amount_requested' => 1000, 'amount_funded' => 0]);
     $investInLoan = app(InvestInLoanAction::class);

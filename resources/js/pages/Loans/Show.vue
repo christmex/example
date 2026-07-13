@@ -15,12 +15,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Spinner } from '@/components/ui/spinner';
-import { dashboard } from '@/routes';
+import { formatCurrency } from '@/lib/currency';
+import { fundedPercentage } from '@/lib/loan';
+import { index as loansIndex } from '@/routes/loans';
 import { store } from '@/routes/loans/investments';
-
-// Adjust these two if the platform currency is not British pounds.
-const CURRENCY_LOCALE = 'en-GB';
-const CURRENCY_SYMBOL = '£';
 
 type LoanPayload = {
     id: string;
@@ -43,7 +41,7 @@ const props = defineProps<{
 
 defineOptions({
     layout: {
-        breadcrumbs: [{ title: 'Dashboard', href: dashboard() }],
+        breadcrumbs: [{ title: 'Loans', href: loansIndex() }],
     },
 });
 
@@ -55,22 +53,13 @@ const remaining = computed(() =>
     Math.max(amountRequested.value - amountFunded.value, 0),
 );
 const percentage = computed(() =>
-    amountRequested.value > 0
-        ? Math.min((amountFunded.value / amountRequested.value) * 100, 100)
-        : 0,
+    fundedPercentage(props.loan.amount_funded, props.loan.amount_requested),
 );
 // Floor (not round) so a not-quite-full loan never displays as "100.0%".
 const percentageLabel = computed(() =>
     (Math.floor(percentage.value * 10) / 10).toFixed(1),
 );
 const isFullyFunded = computed(() => props.loan.is_fully_funded);
-
-function formatMoney(value: string | number): string {
-    return new Intl.NumberFormat(CURRENCY_LOCALE, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    }).format(Number(value));
-}
 
 function submitInvestment(): void {
     form.post(store(props.loan.id).url, {
@@ -112,12 +101,10 @@ function submitInvestment(): void {
                     <Progress :model-value="percentage" class="h-3" />
                     <div class="flex justify-between text-sm">
                         <span class="font-medium">
-                            {{ CURRENCY_SYMBOL
-                            }}{{ formatMoney(loan.amount_funded) }}
+                            {{ formatCurrency(loan.amount_funded) }}
                         </span>
                         <span class="text-muted-foreground">
-                            of {{ CURRENCY_SYMBOL
-                            }}{{ formatMoney(loan.amount_requested) }}
+                            of {{ formatCurrency(loan.amount_requested) }}
                         </span>
                     </div>
                 </div>
@@ -128,7 +115,7 @@ function submitInvestment(): void {
                             Remaining needed
                         </span>
                         <span class="text-lg font-semibold">
-                            {{ CURRENCY_SYMBOL }}{{ formatMoney(remaining) }}
+                            {{ formatCurrency(remaining) }}
                         </span>
                     </div>
                     <div class="flex flex-col gap-1 rounded-lg border p-3">
@@ -138,8 +125,7 @@ function submitInvestment(): void {
                         <span class="text-lg font-semibold">
                             {{
                                 investor
-                                    ? CURRENCY_SYMBOL +
-                                      formatMoney(investor.available_balance)
+                                    ? formatCurrency(investor.available_balance)
                                     : '—'
                             }}
                         </span>
